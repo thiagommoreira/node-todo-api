@@ -11,6 +11,8 @@ var app = express();
 
 app.use(bodyParser.json());
 
+
+
 app.post('/todos',(req, res) => {
 
 	var todo = new Todo({
@@ -26,7 +28,24 @@ app.post('/todos',(req, res) => {
 
 });
 
+app.get('/todos', (req, res) => {
 
+	Todo.find().then((todos) => {
+
+		res.send({todos});
+
+	}, (e) => {
+		res.status(400).send(e);
+	});
+
+
+});
+
+app.use((req, res) => {
+
+	res.status(404).send('Not found');
+
+});
 
 app.listen(port, () => {
 

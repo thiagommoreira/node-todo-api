@@ -1,4 +1,4 @@
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -48,7 +48,7 @@ app.get('/todos/:id', (req, res) => {
 
 	let id = req.params.id;
 	if(!ObjectID.isValid(id)) {
-		res.status(404).send();
+		return res.status(404).send();
 	}
 
 	Todo.findById(req.params.id).then((todo) =>  {
@@ -62,6 +62,32 @@ app.get('/todos/:id', (req, res) => {
 	}, (e) => {
 		res.status(400).send(e);
 	});
+
+});
+
+app.delete('/todos/:id',(req, res) => {
+
+	let id = req.params.id;
+
+	if(!ObjectID(id)) {
+		return res.status(404).send();
+	}
+
+	Todo.findByIdAndRemove(id).then((todo) => {
+
+		if(!todo) {
+			return res.status(404).send();
+		}
+
+		res.send(todo);
+
+	}, (e) => {
+
+		res.status(400).send(e);
+
+	});
+
+
 
 });
 

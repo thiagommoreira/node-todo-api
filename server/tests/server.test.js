@@ -10,7 +10,9 @@ const todos = [ {
 	_id: new ObjectID()
 }, {
 	text: "Comprar maizena",
-	_id: new ObjectID()
+	_id: new ObjectID(),
+	completed: true,
+	completedAt: 333
 }, {
 	text: "buy another stuff",
 	_id: new ObjectID()
@@ -26,7 +28,6 @@ beforeEach((done) => {
 
 
 describe('POST /todos',() => {
-
 
 	it('should create a new todo', (done) => {
 
@@ -135,6 +136,54 @@ describe('Get /todos/:id', () => {
 		.get(`/todos/6a26e686aeb34511b0f194c4`)
 		.expect(400)
 		.end(done);
+
+	});
+
+});
+
+describe("Patch /todos/:id", () => {
+
+	it('should update the todo', (done) => {
+
+		let id = todos[0]._id;
+		let body = {
+			text: 'texto atualizado',
+			completed: true
+		}
+
+		// console.log(id);
+		
+		// console.log(todos[0].text);
+
+		request(app)
+		.patch(`/todos/${id.toHexString()}`)
+		.send(body)
+		.expect(200)
+		.expect((res) => {
+			//console.log(res+"#");
+			expect(res.body.todo.text).toEqual(body.text);
+			expect(res.body.todo.completed).toBe(true);
+			//expect(res.body.todo.completedAt).toBeA('number');
+		})
+		.end(done);
+
+	});
+
+	it('should clear completedAt when todo is not completed', (done) => {
+
+		let id = todos[1]._id.toHexString();
+		let completed = false;
+
+		request(app)
+			.patch(`/todos/${id}`)
+			.send({completed})
+			.expect(200)
+			.expect((res) => {
+
+				expect(res.body.todo.completed).toBe(false);
+
+			})
+			.end(done);
 
 	});
 

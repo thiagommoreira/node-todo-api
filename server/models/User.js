@@ -4,6 +4,8 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
+const secret = 'abc123';
+
 let UserSchema = new mongoose.Schema({
 
 	email: {
@@ -48,12 +50,31 @@ UserSchema.methods.generateAuthToken = function () { //pra utilizar o this ali e
 
 	let user = this;
 	let access = 'auth';
-	let token = jwt.sign({_id: user._id.toHexString(), access}, 'secret').toString();
+	let token = jwt.sign({_id: user._id.toHexString(), access}, secret).toString();
 
 	user.tokens.push({access, token});
 
 	return user.save().then(() => {
 		return token;
+	});
+
+};
+
+UserSchema.statics.findByToken = function(token) {
+
+	var User = this;
+	var decoded;
+
+	try {
+		decoded = jwt.verify(token, secret);
+	} catch (e) {
+		return Promise.reject();
+	}
+
+	return User.findOne({
+		'_id': decoded._id,
+		'tokens.token': token,
+		'tokens.access': 'auth'
 	});
 
 };

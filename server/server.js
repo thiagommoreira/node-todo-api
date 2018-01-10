@@ -26,7 +26,7 @@ app.post('/todos',(req, res) => {
 	todo.save().then((doc) => {
 		res.send(doc);
 	}, (e) => {
-		console.log(`Error: ${e}`);
+		//console.log(`Error: ${e}`);
 		res.status(400).send(e);
 	});
 
@@ -125,6 +125,35 @@ app.patch('/todos/:id', (req, res) => {
 	}).catch((e) => {
 		res.status(400).send();
 	})
+
+});
+
+app.get('/users', (req, res) => {
+
+	User.find().then((users) => {
+
+		return res.status(200).send({users});
+
+	}).catch((e) => {
+		return res.status(400).send(e);
+	})
+
+});
+
+app.post('/users', (req, res) => {
+
+	let body = _.pick(req.body, ['email', 'password']);
+	let user = new User(body);
+
+
+
+	user.save().then(() => {
+		return user.generateAuthToken();
+	}).then((token) => {
+		res.header('x-auth',token).send(user);
+	}).catch((e) => {
+		return res.status(400).send(e);
+	});
 
 });
 

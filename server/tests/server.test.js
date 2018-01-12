@@ -3,31 +3,15 @@ const request = require('supertest');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {User} = require('./../models/user');
 const {ObjectID} = require('mongodb');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed.js');
 
-const todos = [ {
-	text: "First todo",
-	_id: new ObjectID()
-}, {
-	text: "Comprar maizena",
-	_id: new ObjectID(),
-	completed: true,
-	completedAt: 333
-}, {
-	text: "buy another stuff",
-	_id: new ObjectID()
-}];
-
-beforeEach((done) => {
-
-	Todo.remove({}).then(() => {
-		return Todo.insertMany(todos);
-	}).then(() => done());
-
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 
-describe('POST /todos',() => {
+describe('POST /todos', () => {
 
 	it('should create a new todo', (done) => {
 
@@ -53,7 +37,7 @@ describe('POST /todos',() => {
 			});
 
 		});
-		
+
 	});
 
 
@@ -98,7 +82,7 @@ describe('POST /todos',() => {
 
 	//valid 5a26e686aeb34511b0f194c4
 
-	
+
 
 
 });
@@ -152,7 +136,7 @@ describe("Patch /todos/:id", () => {
 		}
 
 		// console.log(id);
-		
+
 		// console.log(todos[0].text);
 
 		request(app)
@@ -184,6 +168,70 @@ describe("Patch /todos/:id", () => {
 
 			})
 			.end(done);
+
+	});
+
+});
+
+describe('GET /users/me', () => {
+
+	it('should return user if authenticated', (done) => {
+		request(app)
+		.get('/users/me')
+		.set('x-auth', users[0].tokens[0].token)
+		.expect(200)
+		.expect((res) => {
+			expect(res.body._id).toBe(users[0]._id.toHexString());
+			expect(res.body.email).toBe(users[0].email);
+		})
+		.end(done)
+	});
+
+	it('should return 401 if not authenticated', (done) => {
+
+		request(app)
+		.get('/users/me')
+		.expect(401)
+		.expect((res) => {
+			expect(res.body).toEqual({});
+		})
+		.end(done);
+
+	});
+
+});
+
+describe('POST /users', () => {
+
+	it('should create a user', (done) => {
+		let email = 'thiagofoz@gmail.com';
+		let password = '1234446666';
+
+		var body = {"email": email, "password": password};
+
+		request(app)
+		.post('/users')
+		.send(body)
+		.expect(200)
+		// .expect((res) => {
+		// 	console.log(res.email+' '+users[0].email);
+		// 	expect(res.email).toBe(users[0].email);
+		// })
+		.end(done);
+
+	});
+
+	it('should return validation errors if req invalid', (done) => {
+		let email = 'thiagofoz@gmail.com';
+		request(app)
+		.post('/users')
+		.send({email})
+		.expect(400)
+		.end(done);
+
+	});
+
+	it('should not create user if email in use', (done) => {
 
 	});
 

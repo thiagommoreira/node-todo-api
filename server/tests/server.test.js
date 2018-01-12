@@ -232,7 +232,52 @@ describe('POST /users', () => {
 	});
 
 	it('should not create user if email in use', (done) => {
+		let email = 'thiagofoz@gmail.com';
+		let password = '1234446666';
 
+		var body = {"email": email, "password": password};
+
+		request(app)
+		.post('/users')
+		.send(body)
+		.expect(400)
+		// .expect((res) => {
+		// 	console.log(res.email+' '+users[0].email);
+		// 	expect(res.email).toBe(users[0].email);
+		// })
+		.end(done);
+	});
+
+});
+
+describe('POST /users/login', () => {
+
+	it('should return a valid request', (done) => {
+
+		let email = users[0].email;
+		let password = users[0].password;
+
+		request(app)
+		.post('/users/login')
+		.send({email, password})
+		.expect(200)
+		.expect((res) => {
+			//console.log(JSON.stringify(res.headers, undefined, 2));
+			expect(res.body.email).toBe(users[0].email);
+			expect(res.headers).toBe(res.header);
+		})
+		.end(done);
+
+	});
+
+	it('should return an invalid request', (done) => {
+		let email = users[0].email+"123";
+		let password = users[0].password;
+		request(app)
+		.post('/users/login')
+		.send({email, password})
+		.expect(400)
+		.end(done);
 	});
 
 });

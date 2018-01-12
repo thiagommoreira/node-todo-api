@@ -18,6 +18,7 @@ describe('POST /todos', () => {
 		var text = 'Test todo text';
 		request(app)
 		.post('/todos')
+		.set('x-auth', users[0].tokens[0].token)
 		.send({text})
 		.expect(200)
 		.expect((res) => {
@@ -63,10 +64,11 @@ describe('POST /todos', () => {
 
 	// });
 
-	it('should get all todos', (done) => {
+	it('should get all todos from the first user', (done) => {
 
 		request(app)
 		.get('/todos')
+		.set('x-auth', users[0].tokens[0].token)
 		.expect(200)
 		.end((err, res) => {
 
@@ -94,11 +96,24 @@ describe('Get /todos/:id', () => {
 
 		request(app)
 		.get(`/todos/${todos[0]._id.toHexString()}`)
+		.set('x-auth', users[0].tokens[0].token)
 		.expect(200)
 		.expect((res) => {
-			//console.log("#",res.body);
-			expect(res.body.text).toBe(todos[0].text);
+			 console.log("#", JSON.stringify(res.text, undefined, 4));
+			// console.log("##", todos[0].text);
+			expect(res.text).toBe(todos[0].text);
 		})
+		.end(done);
+
+	});
+
+	it('should not allow authentication with other user token', (done) => {
+		//console.log('#',todos[0]._id.toHexString());
+
+		request(app)
+		.get(`/todos/${todos[1]._id.toHexString()}`)
+		.set('x-auth', users[0].tokens[0].token)
+		.expect(400)
 		.end(done);
 
 	});
@@ -107,8 +122,9 @@ describe('Get /todos/:id', () => {
 		//console.log('#',todos[0]._id.toHexString());
 
 		request(app)
-		.get(`/todos/123`)
-		.expect(404)
+		.get(`/todos/${users[0]._id}`)
+		.set('x-auth', users[0].tokens[0].token)
+		.expect(400)
 		.end(done);
 
 	});
@@ -118,7 +134,7 @@ describe('Get /todos/:id', () => {
 
 		request(app)
 		.get(`/todos/6a26e686aeb34511b0f194c4`)
-		.expect(400)
+		.expect(401)
 		.end(done);
 
 	});

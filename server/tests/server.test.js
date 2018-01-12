@@ -261,11 +261,11 @@ describe('POST /users/login', () => {
 		.post('/users/login')
 		.send({email, password})
 		.expect(200)
-		.expect((res) => {
-			//console.log(JSON.stringify(res.headers, undefined, 2));
-			expect(res.body.email).toBe(users[0].email);
-			expect(res.headers).toBe(res.header);
-		})
+		// .expect((res) => {
+		// 	//console.log(JSON.stringify(res.headers, undefined, 2));
+		// 	expect(res.body.email).toBe(users[0].email);
+		// 	expect(res.headers).toBe(res.header);
+		// })
 		.end(done);
 
 	});
@@ -278,6 +278,29 @@ describe('POST /users/login', () => {
 		.send({email, password})
 		.expect(400)
 		.end(done);
+	});
+
+});
+
+describe('DELETE /users/me/token', () => {
+	let token = users[0].tokens[0].token;
+	it('should remove auth token on logout', (done) => {
+		request(app)
+		.delete('/users/me/token')
+		.set('x-auth', token)
+		//.send()
+		.expect(200)
+		.end((err, res) => {
+			if(err) {
+				return done(err);
+			}
+
+			User.findByCredentials(token).then((user) => {
+				expect(user).toBe(undefined);
+				console.log('esta undefined');
+				done();
+			}).catch((e) => done(e));
+		});
 	});
 
 });
